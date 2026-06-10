@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig({
   base: process.env.NODE_ENV === 'production'
-  ? '/ConfigurationToClass/'
+  ? '/project_context_for_ai/'
   : '/',
   build: {
     outDir: 'docs',
@@ -21,9 +21,9 @@ export default defineConfig({
     },
 
     manifest: {
-      name: 'CodeToContext',
-      short_name: 'CodeToContext',
-      description: 'Convert .config File to .cs ',
+      name: 'CodeForAi',
+      short_name: 'CodeForAi',
+      description: 'Convert all .cs sFiles to prject_context.cs ',
       theme_color: '#ffffff',
     },
 
