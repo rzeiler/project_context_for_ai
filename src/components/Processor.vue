@@ -1,6 +1,9 @@
 <script setup>
-import { ref, onUnmounted, watch, computed } from "vue";
+import { ref, onUnmounted, watch, computed, defineEmits } from "vue";
 import { ProjectScannerService } from "../services/ProjectScannerService.js";
+
+// 1. Definiere die Emits explizit (falls noch nicht geschehen)
+const emit = defineEmits(['processing']);
 
 const directoryHandles = ref([]);
 const outputFileHandle = ref(null);
@@ -36,7 +39,16 @@ const formattedSize = computed(() => {
 });
 
 const logMessage = (msg) => {
-  messages.value.push({ id: crypto.randomUUID(), timestamp: new Date(), message: msg });
+  messages.value.push({ 
+    id: crypto.randomUUID(), 
+    timestamp: new Date(), 
+    message: msg 
+  });
+  
+  // Wenn mehr als 5 Logs vorhanden sind, entferne die ältesten (vordersten) Einträge
+  if (messages.value.length > 5) {
+    messages.value.splice(0, messages.value.length - 5);
+  }
 };
 
 const addDirectory = async () => {
@@ -61,30 +73,33 @@ const selectOutputFile = async () => {
   } catch (err) { }
 };
 
-// Hauptprozess
 const generateContextFile = async (isAutoTriggered = false) => {
   if (directoryHandles.value.length === 0 || !outputFileHandle.value) return;
 
+  // Event feuern: Processing gestartet, noch kein Code da
+  emit('processing', { loading: true, code: null });
   isProcessing.value = true;
 
   try {
-    // 1. Scan mit dynamischen Filtern aus dem UI
     const csFiles = await ProjectScannerService.scanMultipleDirectories(directoryHandles.value, parsedCustomFilters.value);
-
-    // 2. Schreiben & Statistik abfangen
     const result = await ProjectScannerService.generateAndWriteContext(csFiles, outputFileHandle.value);
 
     knownFilesState.value = result.newStateMap;
-    fileStats.value = result.stats; // Statistik updaten
+    fileStats.value = result.stats; 
 
-    // FEATURE 3: Visuellen Flash-Effekt aktivieren
     triggerSaveFlash.value = true;
-    setTimeout(() => { triggerSaveFlash.value = false; }, 800); // Entspricht CSS-Dauer
+    setTimeout(() => { triggerSaveFlash.value = false; }, 800);
 
     logMessage(isAutoTriggered ? "Kontext-Datei automatisch aktualisiert." : `Erfolgreich erstellt: '${outputFileName.value}'`);
+
+    // Event feuern: Verarbeitung fertig, Code übergeben!
+    emit('processing', { loading: false, code: result.stats.code });
+
   } catch (err) {
     console.error(err);
     logMessage(`Fehler: ${err.message || "Verarbeitung fehlgeschlagen."}`);
+    // Event feuern: Fehlerfall
+    emit('processing', { loading: false, code: null });
   } finally {
     isProcessing.value = false;
   }

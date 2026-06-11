@@ -99,6 +99,7 @@ export class ProjectScannerService {
     return {
       newStateMap,
       stats: {
+        code: combinedContent,
         tokens: Math.ceil(totalCharacters / 4), // Grobe LLM-Schätzung
         bytes: totalBytes
       }

@@ -1,43 +1,82 @@
 <script setup>
 import { ref } from "vue";
 const processing = ref(false);
+const generatedCode = ref(""); // Neuer State für den Code im Hintergrund
 
 import processor from './components/Processor.vue'
 import PWABadge from './components/PWABadge.vue'
 
-const handleEvent = (message) => {
-  processing.value = message;
+const handleEvent = (data) => {
+  processing.value = data.loading;
+  if (data.code) {
+    generatedCode.value = data.code;
+  }
 };
 
 </script>
 
 <template>
+  <pre v-if="generatedCode" class="code-background">{{ generatedCode }}</pre>
   <div class="container">
     <div class="logo " :class="{ 'rotating-text': processing }" title="Processor Rocket">
       &#128640;
     </div>
     <processor @processing="handleEvent" />
   </div>
-  <div>Made with <span style="color: #e25555;">&hearts;</span> by Ralf</div>
+  <div class="love">Made with <span style="color: #e25555;">&hearts;</span> by Ralf</div>
   <PWABadge />
 </template>
 
 
 <style scoped>
+/* Hier betten wir den Code subtil im Hintergrund ein */
+.code-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* width: 100vw; und height: 100vh; fliegen raus! */
+  right: 0;   /* Streckt das Element exakt bis zum rechten Rand */
+  bottom: 0;  /* Streckt das Element exakt bis zum unteren Rand */
+  margin: 0;
+  padding: 10px 30px; /* Genug Platz, damit der Text nicht direkt im Schatten klebt */
+  
+  overflow: hidden; 
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  color: rgba(139, 91, 184, 0.5); 
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: none; 
+  pointer-events: none; 
+  z-index: 0; 
+
+  /* Dein Innenschatten */
+  box-shadow: inset 0px 0px 50px rgba(255, 255, 255, .8);
+  
+  /* Verhindert, dass Padding das Element über den Rand hinausschiebt */
+  box-sizing: border-box; 
+}
+
+/* Wichtig: Container anheben, damit er über dem Code liegt */
 .container {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.9); /* Leicht transparentes Weiß */
+  backdrop-filter: blur(5px); /* Macht den Code dahinter leicht unscharf für bessere Lesbarkeit */
   border: 1px solid rgba(189, 189, 189, .5);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0px 0px 15px 0px rgba(100, 100, 100, .2);
+  box-shadow: 0px 0px 50px 100px rgba(255, 255, 255, .8);
   margin-bottom: 2rem;
-
-
 }
 
 .love {
   text-shadow: -1px 10px #fff, 0 1px #fff, 1px 0 #fff, 0 -1px #fff;
   position: sticky;
   bottom: 10px;
+    z-index: 2;
 }
 
 .logo {
